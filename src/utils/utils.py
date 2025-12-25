@@ -2,7 +2,8 @@ import warnings
 from importlib.util import find_spec
 from typing import Any, Callable, Dict, Optional, Tuple
 
-from omegaconf import DictConfig
+from hydra.core.hydra_config import HydraConfig
+from omegaconf import DictConfig, open_dict
 
 from src.utils import pylogger, rich_utils
 
@@ -23,6 +24,17 @@ def extras(cfg: DictConfig) -> None:
     if not cfg.get("extras"):
         log.warning("Extras config not found! <cfg.extras=null>")
         return
+
+    # automatically detect and set multirun flag from Hydra configuration
+    try:
+        hydra_cfg = HydraConfig.get()
+        if hydra_cfg.mode.name == "MULTIRUN":
+            with open_dict(cfg):
+                cfg.extras.multirun = True
+                log.info("Detected Hydra multirun mode! <cfg.extras.multirun=True>")
+    except ValueError:
+        # HydraConfig not initialized (e.g., during unit tests)
+        pass
 
     # disable python warnings
     if cfg.extras.get("ignore_warnings"):
