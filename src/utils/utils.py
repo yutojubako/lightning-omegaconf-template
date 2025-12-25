@@ -1,5 +1,7 @@
 import warnings
+from datetime import datetime
 from importlib.util import find_spec
+from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from omegaconf import DictConfig
@@ -7,6 +9,21 @@ from omegaconf import DictConfig
 from src.utils import pylogger, rich_utils
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
+
+
+def setup_output_dir(cfg: DictConfig) -> Path:
+    """Create and inject the output directory path into the config.
+
+    :param cfg: A DictConfig object containing the config tree.
+    :return: The created output directory path.
+    """
+    task_name = cfg.get("task_name") or "run"
+    log_dir = Path(cfg.paths.log_dir)
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_dir = log_dir / task_name / timestamp
+    output_dir.mkdir(parents=True, exist_ok=True)
+    cfg.paths.output_dir = str(output_dir)
+    return output_dir
 
 
 def extras(cfg: DictConfig) -> None:

@@ -33,6 +33,7 @@ from src.utils import (
     instantiate_callbacks,
     instantiate_loggers,
     log_hyperparameters,
+    setup_output_dir,
     task_wrapper,
 )
 
@@ -112,6 +113,8 @@ def main(cfg: DictConfig) -> Optional[float]:
     :param cfg: DictConfig configuration composed by Hydra.
     :return: Optional[float] with optimized metric value.
     """
+    setup_output_dir(cfg)
+
     # apply extra utilities
     # (e.g. ask for tags if none are provided in cfg, print cfg tree, etc.)
     extras(cfg)
