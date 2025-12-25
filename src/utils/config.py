@@ -20,6 +20,10 @@ def load_config(
     :param overrides: Optional OmegaConf configuration containing overrides.
     :return: The merged DictConfig object.
     """
+    # Register resolvers early to support interpolations in config files
+    _register_now_resolver()
+    _register_placeholder_hydra_resolver()
+
     rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
     project_root = Path(rootutils.find_root(indicator=".project-root"))
     config_root = project_root / config_dir
@@ -121,9 +125,6 @@ def _populate_runtime_paths(cfg: DictConfig, project_root: Path) -> None:
     if not cfg.get("paths"):
         raise ValueError("Config must contain a 'paths' section")
 
-    # Register "now" resolver before resolving paths
-    _register_now_resolver()
-
     resolved_paths = OmegaConf.to_container(cfg.paths, resolve=True)
     if not isinstance(resolved_paths, dict) or "log_dir" not in resolved_paths:
         raise ValueError("Config paths section must contain 'log_dir' key")
@@ -136,6 +137,7 @@ def _populate_runtime_paths(cfg: DictConfig, project_root: Path) -> None:
     with open_dict(cfg):
         cfg.paths.output_dir = str(output_dir)
 
+    # Re-register hydra resolver with actual runtime paths
     _register_hydra_resolver(output_dir=output_dir, cwd=Path.cwd())
 
 
@@ -146,6 +148,16 @@ def _register_now_resolver() -> None:
         return datetime.now().strftime(pattern)
 
     OmegaConf.register_new_resolver("now", resolve_now, replace=True)
+
+
+def _register_placeholder_hydra_resolver() -> None:
+    """Register placeholder hydra resolver for initial config loading."""
+
+    def resolve_hydra_placeholder(value: str) -> str:
+        # Return placeholder that will be replaced in _populate_runtime_paths
+        return f"__placeholder_{value}__"
+
+    OmegaConf.register_new_resolver("hydra", resolve_hydra_placeholder, replace=True)
 
 
 def _register_hydra_resolver(output_dir: Path, cwd: Path) -> None:
