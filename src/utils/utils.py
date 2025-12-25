@@ -11,15 +11,35 @@ from src.utils import pylogger, rich_utils
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
 
 
-def setup_output_dir(cfg: DictConfig) -> Path:
+def setup_output_dir(cfg: DictConfig, timestamp: Optional[str] = None) -> Path:
     """Create and inject the output directory path into the config.
 
     :param cfg: A DictConfig object containing the config tree.
+    :param timestamp: Optional precomputed timestamp string to use for the output directory.
+        If not provided, the current time will be used.
     :return: The created output directory path.
+    :raises ValueError: If cfg.paths.log_dir is not configured or is inaccessible.
     """
     task_name = cfg.get("task_name") or "run"
+    
+    # Validate log_dir exists in config
+    if not hasattr(cfg.paths, "log_dir") or cfg.paths.log_dir is None:
+        raise ValueError(
+            "cfg.paths.log_dir is not configured. Please ensure paths.log_dir is set in your config."
+        )
+    
     log_dir = Path(cfg.paths.log_dir)
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    
+    # Validate log_dir is accessible (will raise more descriptive error if parent doesn't exist)
+    try:
+        log_dir = log_dir.resolve()
+    except (OSError, RuntimeError) as e:
+        raise ValueError(
+            f"cfg.paths.log_dir '{cfg.paths.log_dir}' is not accessible: {e}"
+        ) from e
+    
+    if timestamp is None:
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     output_dir = log_dir / task_name / timestamp
     output_dir.mkdir(parents=True, exist_ok=True)
     cfg.paths.output_dir = str(output_dir)

@@ -11,7 +11,7 @@ log_dir: ${paths.root_dir}/logs/
 
 # path to output directory, created dynamically at runtime by the loader
 # use it to store all files generated during the run, like ckpts and metrics
-output_dir: ${oc.env:OUTPUT_DIR,${paths.log_dir}/outputs}
+output_dir: ${oc.env:OUTPUT_DIR,null}
 
 # path to working directory
 work_dir: ${oc.env:WORK_DIR,${paths.root_dir}}
