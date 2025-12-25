@@ -31,6 +31,7 @@ from src.utils import (
     log_hyperparameters,
     task_wrapper,
 )
+from src.utils.instantiate import instantiate
 
 log = RankedLogger(__name__, rank_zero_only=True)
 
@@ -48,16 +49,16 @@ def evaluate(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     assert cfg.ckpt_path
 
     log.info(f"Instantiating datamodule <{cfg.data._target_}>")
-    datamodule: LightningDataModule = hydra.utils.instantiate(cfg.data)
+    datamodule: LightningDataModule = instantiate(cfg.data)
 
     log.info(f"Instantiating model <{cfg.model._target_}>")
-    model: LightningModule = hydra.utils.instantiate(cfg.model)
+    model: LightningModule = instantiate(cfg.model)
 
     log.info("Instantiating loggers...")
     logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
 
     log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
-    trainer: Trainer = hydra.utils.instantiate(cfg.trainer, logger=logger)
+    trainer: Trainer = instantiate(cfg.trainer, logger=logger)
 
     object_dict = {
         "cfg": cfg,
