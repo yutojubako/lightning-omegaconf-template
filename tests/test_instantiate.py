@@ -52,7 +52,7 @@ def test_instantiate_overrides() -> None:
 def test_instantiate_requires_dictconfig() -> None:
     """Raise when config is not a DictConfig."""
     with pytest.raises(TypeError, match="Config must be a DictConfig"):
-        instantiate({"_target_": "tests.helpers.instantiate_targets.Example"})
+        instantiate({"_target_": "tests.helpers.instantiate_targets.Example"})  # type: ignore[arg-type]
 
 
 def test_instantiate_requires_target() -> None:
