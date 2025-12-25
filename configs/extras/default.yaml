@@ -4,7 +4,8 @@ ignore_warnings: False
 # ask user for tags if none are provided in the config
 enforce_tags: True
 
-# mark when running hydra multirun
+# set to True when running Hydra multiruns (e.g., hyperparameter sweeps)
+# this flag is automatically detected and set by the extras() function
 multirun: False
 
 # pretty print config tree at the start of the run using Rich library
