@@ -84,7 +84,10 @@ def _load_default_entry(
             if optional or allow_missing:
                 return None
             raise FileNotFoundError(f"Missing config file: {config_path}")
-        return _load_config_file(config_path, config_root)
+
+        loaded_config = _load_config_file(config_path, config_root)
+        # Wrap the loaded config under the group name
+        return OmegaConf.create({group_name: loaded_config})
 
     raise TypeError(f"Unsupported defaults entry type: {type(entry)}")
 
