@@ -35,7 +35,7 @@ def setup_output_dir(cfg: DictConfig, timestamp: Optional[str] = None) -> Path:
     # Validate log_dir is accessible (will raise more descriptive error if parent doesn't exist)
     try:
         log_dir = log_dir.resolve()
-    except (OSError, PermissionError) as e:
+    except OSError as e:
         raise ValueError(
             f"cfg.paths.log_dir '{log_dir_value}' is not accessible: {e}"
         ) from e
