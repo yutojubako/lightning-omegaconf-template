@@ -29,10 +29,13 @@ def extras(cfg: DictConfig) -> None:
     # automatically detect and set multirun flag from Hydra configuration
     try:
         hydra_cfg = HydraConfig.get()
-        if hydra_cfg.mode.name == "MULTIRUN":
-            with open_dict(cfg):
+        with open_dict(cfg):
+            if hydra_cfg.mode.name == "MULTIRUN":
                 cfg.extras.multirun = True
                 log.info("Detected Hydra multirun mode! <cfg.extras.multirun=True>")
+            else:
+                cfg.extras.multirun = False
+                log.info("Detected Hydra single-run mode! <cfg.extras.multirun=False>")
     except (ValueError, AttributeError) as e:
         # HydraConfig not initialized (e.g., during unit tests) or not accessible
         log.debug(f"Could not access HydraConfig: {e}")
