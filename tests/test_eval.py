@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 
 import pytest
-from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, open_dict
 
 from src.eval import evaluate
@@ -24,7 +23,6 @@ def test_train_eval(tmp_path: Path, cfg_train: DictConfig, cfg_eval: DictConfig)
         cfg_train.trainer.max_epochs = 1
         cfg_train.test = True
 
-    HydraConfig().set_config(cfg_train)
     train_metric_dict, _ = train(cfg_train)
 
     assert "last.ckpt" in os.listdir(tmp_path / "checkpoints")
@@ -32,7 +30,6 @@ def test_train_eval(tmp_path: Path, cfg_train: DictConfig, cfg_eval: DictConfig)
     with open_dict(cfg_eval):
         cfg_eval.ckpt_path = str(tmp_path / "checkpoints" / "last.ckpt")
 
-    HydraConfig().set_config(cfg_eval)
     test_metric_dict, _ = evaluate(cfg_eval)
 
     assert test_metric_dict["test/acc"] > 0.0
