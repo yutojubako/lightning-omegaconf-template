@@ -4,22 +4,44 @@ from importlib.util import find_spec
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from src.utils import pylogger, rich_utils
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
 
 
-def setup_output_dir(cfg: DictConfig) -> Path:
+def setup_output_dir(cfg: DictConfig, timestamp: Optional[str] = None) -> Path:
     """Create and inject the output directory path into the config.
 
     :param cfg: A DictConfig object containing the config tree.
+    :param timestamp: Optional precomputed timestamp string to use for the output directory.
+        Should follow the format YYYY-MM-DD_HH-MM-SS. If not provided, the current time
+        will be used in this format.
     :return: The created output directory path.
+    :raises ValueError: If cfg.paths.log_dir is not configured or is inaccessible.
     """
     task_name = cfg.get("task_name") or "run"
-    log_dir = Path(cfg.paths.log_dir)
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    # Validate log_dir exists in config
+    log_dir_value = OmegaConf.select(cfg, "paths.log_dir")
+    if log_dir_value is None:
+        raise ValueError(
+            "cfg.paths.log_dir is not configured. Please ensure paths.log_dir is set in your config."
+        )
+
+    log_dir = Path(log_dir_value)
+
+    # Validate log_dir is accessible (will raise more descriptive error if parent doesn't exist)
+    try:
+        log_dir = log_dir.resolve()
+    except OSError as e:
+        raise ValueError(
+            f"cfg.paths.log_dir '{log_dir_value}' is not accessible: {e}"
+        ) from e
+
+    if timestamp is None:
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     output_dir = log_dir / task_name / timestamp
     output_dir.mkdir(parents=True, exist_ok=True)
     cfg.paths.output_dir = str(output_dir)
