@@ -29,7 +29,7 @@ def _locate_target(target_path: str) -> Any:
                 return module
             except ModuleNotFoundError as e:
                 raise ModuleNotFoundError(
-                    f"Could not import {target_path!r} as a builtin or module. "
+                    f"Could not import module {target_path!r}. "
                     "Ensure the module is installed and importable."
                 ) from e
 

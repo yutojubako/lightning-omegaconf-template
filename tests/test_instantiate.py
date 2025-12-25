@@ -5,7 +5,8 @@ from __future__ import annotations
 import pytest
 from omegaconf import DictConfig, OmegaConf
 
-# Import directly from the instantiate module to avoid pulling in all dependencies
+# Import directly from the instantiate module using importlib to avoid pulling
+# in all dependencies from src/utils/__init__.py (particularly Lightning)
 import importlib.util
 import sys
 from pathlib import Path
