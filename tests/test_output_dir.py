@@ -49,7 +49,9 @@ def test_setup_output_dir_respects_existing_value(tmp_path: Path) -> None:
     assert output_dir.exists()
     assert cfg.paths.output_dir == str(custom_output)
     # Should NOT create a timestamped subdirectory under log_dir
-    assert not any((tmp_path / "dummy_task").iterdir()) if (tmp_path / "dummy_task").exists() else True
+    task_dir = tmp_path / "dummy_task"
+    if task_dir.exists():
+        assert len(list(task_dir.iterdir())) == 0, "No timestamped subdirectory should be created"
 
 
 def test_setup_output_dir_custom_timestamp(tmp_path: Path) -> None:

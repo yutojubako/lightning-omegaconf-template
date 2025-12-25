@@ -32,6 +32,8 @@ def setup_output_dir(cfg: DictConfig, timestamp: Optional[str] = None) -> Path:
         output_dir = Path(existing_output_dir)
         # Ensure the directory exists
         output_dir.mkdir(parents=True, exist_ok=True)
+        # Update cfg with the resolved path for consistency
+        cfg.paths.output_dir = str(output_dir)
         return output_dir
 
     # output_dir is not set, so create a new timestamped directory
