@@ -113,7 +113,14 @@ def main(cfg: DictConfig) -> Optional[float]:
     :param cfg: DictConfig configuration composed by Hydra.
     :return: Optional[float] with optimized metric value.
     """
-    setup_output_dir(cfg)
+    # Only set up a new output directory if one has not already been provided
+    # (e.g. via OUTPUT_DIR environment variable in the config).
+    output_dir = None
+    if "paths" in cfg:
+        # DictConfig.get returns None when the key is not set.
+        output_dir = cfg.paths.get("output_dir")
+    if output_dir is None:
+        setup_output_dir(cfg)
 
     # apply extra utilities
     # (e.g. ask for tags if none are provided in cfg, print cfg tree, etc.)

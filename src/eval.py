@@ -89,7 +89,9 @@ def main(cfg: DictConfig) -> None:
 
     :param cfg: DictConfig configuration composed by Hydra.
     """
-    setup_output_dir(cfg)
+    paths_cfg = cfg.get("paths")
+    if not paths_cfg or paths_cfg.get("output_dir") is None:
+        setup_output_dir(cfg)
 
     # apply extra utilities
     # (e.g. ask for tags if none are provided in cfg, print cfg tree, etc.)
