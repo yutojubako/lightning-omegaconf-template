@@ -14,6 +14,7 @@ def extras(cfg: DictConfig) -> None:
     """Applies optional utilities before the task is started.
 
     Utilities:
+        - Automatically detecting and setting multirun flag
         - Ignoring python warnings
         - Setting tags from command line
         - Rich config printing
@@ -32,8 +33,9 @@ def extras(cfg: DictConfig) -> None:
             with open_dict(cfg):
                 cfg.extras.multirun = True
                 log.info("Detected Hydra multirun mode! <cfg.extras.multirun=True>")
-    except ValueError:
-        # HydraConfig not initialized (e.g., during unit tests)
+    except (ValueError, AttributeError) as e:
+        # HydraConfig not initialized (e.g., during unit tests) or not accessible
+        log.debug(f"Could not access HydraConfig: {e}")
         pass
 
     # disable python warnings
