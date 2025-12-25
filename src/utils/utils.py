@@ -14,13 +14,29 @@ log = pylogger.RankedLogger(__name__, rank_zero_only=True)
 def setup_output_dir(cfg: DictConfig, timestamp: Optional[str] = None) -> Path:
     """Create and inject the output directory path into the config.
 
+    If cfg.paths.output_dir is already set (e.g., via OUTPUT_DIR environment variable),
+    this function will respect that value and return it without creating a new directory.
+
     :param cfg: A DictConfig object containing the config tree.
     :param timestamp: Optional precomputed timestamp string to use for the output directory.
         Should follow the format YYYY-MM-DD_HH-MM-SS. If not provided, the current time
         will be used in this format.
-    :return: The created output directory path.
-    :raises ValueError: If cfg.paths.log_dir is not configured or is inaccessible.
+    :return: The output directory path (either pre-existing or newly created).
+    :raises ValueError: If cfg.paths.log_dir is not configured or is inaccessible
+        (only when output_dir is not already set).
     """
+    # Check if output_dir is already set (e.g., from OUTPUT_DIR environment variable)
+    existing_output_dir = OmegaConf.select(cfg, "paths.output_dir")
+    if existing_output_dir is not None:
+        # Respect the already-set value and return it
+        output_dir = Path(existing_output_dir)
+        # Ensure the directory exists
+        output_dir.mkdir(parents=True, exist_ok=True)
+        # Update cfg with the resolved path for consistency
+        cfg.paths.output_dir = str(output_dir)
+        return output_dir
+
+    # output_dir is not set, so create a new timestamped directory
     task_name = cfg.get("task_name") or "run"
 
     # Validate log_dir exists in config
