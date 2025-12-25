@@ -16,7 +16,8 @@ def setup_output_dir(cfg: DictConfig, timestamp: Optional[str] = None) -> Path:
 
     :param cfg: A DictConfig object containing the config tree.
     :param timestamp: Optional precomputed timestamp string to use for the output directory.
-        If not provided, the current time will be used in format YYYY-MM-DD_HH-MM-SS.
+        Should follow the format YYYY-MM-DD_HH-MM-SS. If not provided, the current time
+        will be used in this format.
     :return: The created output directory path.
     :raises ValueError: If cfg.paths.log_dir is not configured or is inaccessible.
     """
@@ -34,7 +35,7 @@ def setup_output_dir(cfg: DictConfig, timestamp: Optional[str] = None) -> Path:
     # Validate log_dir is accessible (will raise more descriptive error if parent doesn't exist)
     try:
         log_dir = log_dir.resolve()
-    except (OSError, RuntimeError, PermissionError, FileNotFoundError) as e:
+    except (OSError, PermissionError) as e:
         raise ValueError(
             f"cfg.paths.log_dir '{log_dir_value}' is not accessible: {e}"
         ) from e
