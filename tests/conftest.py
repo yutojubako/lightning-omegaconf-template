@@ -9,12 +9,19 @@ from src.utils import load_config
 
 
 @pytest.fixture(scope="package")
-def cfg_train_global() -> DictConfig:
+def cfg_train_global(tmp_path_factory: pytest.TempPathFactory) -> DictConfig:
     """A pytest fixture for setting up a default DictConfig for training.
 
+    :param tmp_path_factory: Pytest fixture for creating temporary directories.
     :return: A DictConfig object containing a default configuration for training.
     """
-    cfg = load_config("train")
+    # Use a temporary directory for the package-scoped fixture
+    tmp_log_dir = tmp_path_factory.mktemp("train_logs")
+    
+    cfg = load_config(
+        "train",
+        overrides=OmegaConf.create({"paths": {"log_dir": str(tmp_log_dir)}}),
+    )
 
     # set defaults for all tests
     with open_dict(cfg):
@@ -34,14 +41,21 @@ def cfg_train_global() -> DictConfig:
 
 
 @pytest.fixture(scope="package")
-def cfg_eval_global() -> DictConfig:
+def cfg_eval_global(tmp_path_factory: pytest.TempPathFactory) -> DictConfig:
     """A pytest fixture for setting up a default DictConfig for evaluation.
 
+    :param tmp_path_factory: Pytest fixture for creating temporary directories.
     :return: A DictConfig containing a default configuration for evaluation.
     """
+    # Use a temporary directory for the package-scoped fixture
+    tmp_log_dir = tmp_path_factory.mktemp("eval_logs")
+    
     cfg = load_config(
         "eval",
-        overrides=OmegaConf.create({"ckpt_path": "."}),
+        overrides=OmegaConf.create({
+            "ckpt_path": ".",
+            "paths": {"log_dir": str(tmp_log_dir)},
+        }),
     )
 
     # set defaults for all tests
