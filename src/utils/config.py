@@ -70,7 +70,7 @@ def _load_default_entry(
             raise FileNotFoundError(f"Missing config file: {config_path}")
         return _load_config_file(config_path, config_root)
 
-    if isinstance(entry, dict):
+    if isinstance(entry, (dict, DictConfig)):
         if len(entry) != 1:
             raise ValueError(f"Invalid defaults entry: {entry}")
 
