@@ -4,7 +4,6 @@ from typing import Sequence
 import rich
 import rich.syntax
 import rich.tree
-from hydra.core.hydra_config import HydraConfig
 from lightning_utilities.core.rank_zero import rank_zero_only
 from omegaconf import DictConfig, OmegaConf, open_dict
 from rich.prompt import Prompt
@@ -82,9 +81,6 @@ def enforce_tags(cfg: DictConfig, save_to_file: bool = False) -> None:
     :param save_to_file: Whether to export tags to the output folder. Default is ``False``.
     """
     if not cfg.get("tags"):
-        if "id" in HydraConfig().cfg.hydra.job:
-            raise ValueError("Specify tags before launching a multirun!")
-
         log.warning("No tags provided in config. Prompting user to input tags...")
         tags = Prompt.ask("Enter a list of comma separated tags", default="dev")
         tags = [t.strip() for t in tags.split(",") if t != ""]

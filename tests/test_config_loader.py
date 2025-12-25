@@ -62,11 +62,12 @@ def test_load_config_handles_absolute_path_prefix(tmp_path: Path) -> None:
 
 def test_output_dir_uniqueness(tmp_path: Path) -> None:
     """Test that multiple calls to load_config create unique output directories."""
+    import time
+    
     cfg1 = load_config("train", overrides=OmegaConf.create({"paths": {"log_dir": str(tmp_path)}}))
+    time.sleep(0.001)  # Sleep 1ms to ensure different microsecond timestamp
     cfg2 = load_config("train", overrides=OmegaConf.create({"paths": {"log_dir": str(tmp_path)}}))
     
     # Output dirs should be different due to microsecond precision in timestamp
-    # Note: This might occasionally fail if both calls happen in the same microsecond
-    # but that's extremely unlikely
-    assert cfg1.paths.output_dir != cfg2.paths.output_dir or True  # Allow same if in same microsecond
+    assert cfg1.paths.output_dir != cfg2.paths.output_dir
 
