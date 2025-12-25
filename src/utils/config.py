@@ -94,10 +94,10 @@ def _parse_group_key(group_key: str) -> tuple[str, bool, bool]:
     optional_prefix = "optional "
     override_prefix = "override "
     if group_key.startswith(optional_prefix):
-        return group_key[len(optional_prefix) :].strip(), True, False
+        return group_key[len(optional_prefix) :].strip().lstrip("/"), True, False
     if group_key.startswith(override_prefix):
-        return group_key[len(override_prefix) :].strip(), False, True
-    return group_key, False, False
+        return group_key[len(override_prefix) :].strip().lstrip("/"), False, True
+    return group_key.lstrip("/"), False, False
 
 
 def _remove_defaults(cfg: DictConfig) -> DictConfig:
@@ -110,13 +110,21 @@ def _remove_defaults(cfg: DictConfig) -> DictConfig:
 
 def _populate_runtime_paths(cfg: DictConfig, project_root: Path) -> None:
     """Set runtime paths and create the output directory."""
-    _register_resolvers()
-
     with open_dict(cfg):
         cfg.paths.root_dir = str(project_root)
         cfg.paths.work_dir = str(Path.cwd())
 
+    # Validate that paths section exists and has log_dir
+    if not cfg.get("paths"):
+        raise ValueError("Config must contain a 'paths' section")
+    
+    # Register "now" resolver before resolving paths
+    _register_now_resolver()
+    
     resolved_paths = OmegaConf.to_container(cfg.paths, resolve=True)
+    if not isinstance(resolved_paths, dict) or "log_dir" not in resolved_paths:
+        raise ValueError("Config paths section must contain 'log_dir' key")
+    
     log_dir = Path(str(resolved_paths["log_dir"]))
     task_name = str(cfg.get("task_name", "task"))
     output_dir = log_dir / task_name / "runs" / _timestamp()
@@ -125,22 +133,20 @@ def _populate_runtime_paths(cfg: DictConfig, project_root: Path) -> None:
     with open_dict(cfg):
         cfg.paths.output_dir = str(output_dir)
 
-    _register_resolvers(output_dir=output_dir, cwd=Path.cwd())
+    _register_hydra_resolver(output_dir=output_dir, cwd=Path.cwd())
 
 
-def _register_resolvers(
-    output_dir: Optional[Path] = None,
-    cwd: Optional[Path] = None,
-) -> None:
-    """Register OmegaConf resolvers used by existing configs."""
+def _register_now_resolver() -> None:
+    """Register the 'now' OmegaConf resolver."""
 
     def resolve_now(pattern: str = "%Y-%m-%d_%H-%M-%S") -> str:
         return datetime.now().strftime(pattern)
 
     OmegaConf.register_new_resolver("now", resolve_now, replace=True)
 
-    if output_dir is None or cwd is None:
-        return
+
+def _register_hydra_resolver(output_dir: Path, cwd: Path) -> None:
+    """Register the 'hydra' OmegaConf resolver for runtime paths."""
 
     def resolve_hydra(value: str) -> str:
         mapping = {
@@ -156,4 +162,4 @@ def _register_resolvers(
 
 def _timestamp() -> str:
     """Return a timestamp string for output directory creation."""
-    return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    return datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")

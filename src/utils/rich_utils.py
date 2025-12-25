@@ -79,7 +79,7 @@ def enforce_tags(cfg: DictConfig, save_to_file: bool = False) -> None:
     """Prompts user to input tags from command line if no tags are provided in config.
 
     :param cfg: A DictConfig composed by OmegaConf.
-    :param save_to_file: Whether to export tags to the hydra output folder. Default is ``False``.
+    :param save_to_file: Whether to export tags to the output folder. Default is ``False``.
     """
     if not cfg.get("tags"):
         if "id" in HydraConfig().cfg.hydra.job:
