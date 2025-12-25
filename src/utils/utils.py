@@ -36,7 +36,6 @@ def extras(cfg: DictConfig) -> None:
     except (ValueError, AttributeError) as e:
         # HydraConfig not initialized (e.g., during unit tests) or not accessible
         log.debug(f"Could not access HydraConfig: {e}")
-        pass
 
     # disable python warnings
     if cfg.extras.get("ignore_warnings"):
