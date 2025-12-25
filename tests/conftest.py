@@ -31,6 +31,7 @@ def cfg_train_global() -> DictConfig:
             cfg.data.pin_memory = False
             cfg.extras.print_config = False
             cfg.extras.enforce_tags = False
+            cfg.extras.multirun = False
             cfg.logger = None
 
     return cfg
@@ -56,6 +57,7 @@ def cfg_eval_global() -> DictConfig:
             cfg.data.pin_memory = False
             cfg.extras.print_config = False
             cfg.extras.enforce_tags = False
+            cfg.extras.multirun = False
             cfg.logger = None
 
     return cfg
