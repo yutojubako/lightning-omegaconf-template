@@ -15,6 +15,8 @@ class FakeMNIST(Dataset):
     def __init__(self, data_dir, train=True, download=False, transform=None):
         # Create fake data: 60000 train samples or 10000 test samples
         num_samples = 60000 if train else 10000
+        # Set seed for reproducibility
+        np.random.seed(42)
         # Images: 28x28 grayscale, values between 0 and 255 (like MNIST)
         # Convert to uint8 numpy arrays to match MNIST format
         self.data = (np.random.rand(num_samples, 28, 28) * 255).astype(np.uint8)
