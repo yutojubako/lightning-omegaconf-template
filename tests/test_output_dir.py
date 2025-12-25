@@ -6,11 +6,18 @@ from omegaconf import DictConfig
 from src.utils import setup_output_dir
 
 
-def test_setup_output_dir_creates_and_sets(cfg_train: DictConfig) -> None:
-    """Ensure the output directory is created and stored in the config.
-
-    :param cfg_train: A DictConfig containing a valid training configuration.
-    """
+def test_setup_output_dir_creates_and_sets(tmp_path: Path) -> None:
+    """Ensure the output directory is created and stored in the config."""
+    cfg_train = DictConfig(
+        {
+            "paths": {
+                "log_dir": str(tmp_path),
+                # This will be set by setup_output_dir
+                "output_dir": None,
+            },
+            "task_name": "dummy_task",
+        }
+    )
     HydraConfig().set_config(cfg_train)
     output_dir = setup_output_dir(cfg_train)
 

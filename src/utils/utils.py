@@ -42,6 +42,14 @@ def setup_output_dir(cfg: DictConfig, timestamp: Optional[str] = None) -> Path:
 
     if timestamp is None:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    else:
+        # Validate provided timestamp format: YYYY-MM-DD_HH-MM-SS
+        try:
+            datetime.strptime(timestamp, "%Y-%m-%d_%H-%M-%S")
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid timestamp format: '{timestamp}'. Expected format is YYYY-MM-DD_HH-MM-SS."
+            ) from e
     output_dir = log_dir / task_name / timestamp
     output_dir.mkdir(parents=True, exist_ok=True)
     cfg.paths.output_dir = str(output_dir)
