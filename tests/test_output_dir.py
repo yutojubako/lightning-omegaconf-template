@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
 
 from src.utils import setup_output_dir
@@ -18,7 +17,6 @@ def test_setup_output_dir_creates_and_sets(tmp_path: Path) -> None:
             "task_name": "dummy_task",
         }
     )
-    HydraConfig().set_config(cfg_train)
     output_dir = setup_output_dir(cfg_train)
 
     assert output_dir.exists()
