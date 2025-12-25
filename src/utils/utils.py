@@ -2,8 +2,7 @@ import warnings
 from importlib.util import find_spec
 from typing import Any, Callable, Dict, Optional, Tuple
 
-from hydra.core.hydra_config import HydraConfig
-from omegaconf import DictConfig, open_dict
+from omegaconf import DictConfig
 
 from src.utils import pylogger, rich_utils
 
@@ -14,7 +13,6 @@ def extras(cfg: DictConfig) -> None:
     """Applies optional utilities before the task is started.
 
     Utilities:
-        - Automatically detecting and setting multirun flag
         - Ignoring python warnings
         - Setting tags from command line
         - Rich config printing
@@ -25,20 +23,6 @@ def extras(cfg: DictConfig) -> None:
     if not cfg.get("extras"):
         log.warning("Extras config not found! <cfg.extras=null>")
         return
-
-    # automatically detect and set multirun flag from Hydra configuration
-    try:
-        hydra_cfg = HydraConfig.get()
-        with open_dict(cfg):
-            if hydra_cfg.mode.name == "MULTIRUN":
-                cfg.extras.multirun = True
-                log.info("Detected Hydra multirun mode! <cfg.extras.multirun=True>")
-            else:
-                cfg.extras.multirun = False
-                log.info("Detected Hydra single-run mode! <cfg.extras.multirun=False>")
-    except (ValueError, AttributeError) as e:
-        # HydraConfig not initialized (e.g., during unit tests) or not accessible
-        log.debug(f"Could not access HydraConfig: {e}")
 
     # disable python warnings
     if cfg.extras.get("ignore_warnings"):
