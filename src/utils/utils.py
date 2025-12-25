@@ -1,75 +1,12 @@
 import warnings
-from datetime import datetime
 from importlib.util import find_spec
-from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 
 from src.utils import pylogger, rich_utils
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
-
-
-def setup_output_dir(cfg: DictConfig, timestamp: Optional[str] = None) -> Path:
-    """Create and inject the output directory path into the config.
-
-    If cfg.paths.output_dir is already set (e.g., via OUTPUT_DIR environment variable),
-    this function will respect that value and return it without creating a new directory.
-
-    :param cfg: A DictConfig object containing the config tree.
-    :param timestamp: Optional precomputed timestamp string to use for the output directory.
-        Should follow the format YYYY-MM-DD_HH-MM-SS. If not provided, the current time
-        will be used in this format.
-    :return: The output directory path (either pre-existing or newly created).
-    :raises ValueError: If cfg.paths.log_dir is not configured or is inaccessible
-        (only when output_dir is not already set).
-    """
-    # Check if output_dir is already set (e.g., from OUTPUT_DIR environment variable)
-    existing_output_dir = OmegaConf.select(cfg, "paths.output_dir")
-    if existing_output_dir is not None:
-        # Respect the already-set value and return it
-        output_dir = Path(existing_output_dir)
-        # Ensure the directory exists
-        output_dir.mkdir(parents=True, exist_ok=True)
-        # Update cfg with the resolved path for consistency
-        cfg.paths.output_dir = str(output_dir)
-        return output_dir
-
-    # output_dir is not set, so create a new timestamped directory
-    task_name = cfg.get("task_name") or "run"
-
-    # Validate log_dir exists in config
-    log_dir_value = OmegaConf.select(cfg, "paths.log_dir")
-    if log_dir_value is None:
-        raise ValueError(
-            "cfg.paths.log_dir is not configured. Please ensure paths.log_dir is set in your config."
-        )
-
-    log_dir = Path(log_dir_value)
-
-    # Validate log_dir is accessible (will raise more descriptive error if parent doesn't exist)
-    try:
-        log_dir = log_dir.resolve()
-    except OSError as e:
-        raise ValueError(
-            f"cfg.paths.log_dir '{log_dir_value}' is not accessible: {e}"
-        ) from e
-
-    if timestamp is None:
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    else:
-        # Validate provided timestamp format: YYYY-MM-DD_HH-MM-SS
-        try:
-            datetime.strptime(timestamp, "%Y-%m-%d_%H-%M-%S")
-        except ValueError as e:
-            raise ValueError(
-                f"Invalid timestamp format: '{timestamp}'. Expected format is YYYY-MM-DD_HH-MM-SS."
-            ) from e
-    output_dir = log_dir / task_name / timestamp
-    output_dir.mkdir(parents=True, exist_ok=True)
-    cfg.paths.output_dir = str(output_dir)
-    return output_dir
 
 
 def extras(cfg: DictConfig) -> None:
