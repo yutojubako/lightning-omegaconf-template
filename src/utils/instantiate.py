@@ -13,6 +13,9 @@ def _locate_target(target_path: str) -> Any:
 
     :param target_path: Dotted path to the target object.
     :return: Resolved Python object.
+    :raises ValueError: If ``target_path`` is empty or otherwise invalid.
+    :raises ModuleNotFoundError: If the specified module cannot be imported.
+    :raises AttributeError: If the requested attribute is not found on the resolved module or in builtins.
     """
     if not target_path:
         raise ValueError(f"Invalid target path: {target_path!r}")
@@ -29,8 +32,9 @@ def _locate_target(target_path: str) -> Any:
                 return module
             except ModuleNotFoundError as e:
                 raise ModuleNotFoundError(
-                    f"Could not import module {target_path!r}. "
-                    "Ensure the module is installed and importable."
+                    f"Name {target_path!r} is neither a builtin nor an importable module. "
+                    "If this was meant to be a module, ensure it is installed and importable; "
+                    "if it was meant to be a builtin, check that the name is correct."
                 ) from e
 
     module_path, attr_name = target_path.rsplit(".", 1)
@@ -58,6 +62,11 @@ def _extract_params(cfg: DictConfig) -> dict[str, Any]:
     :return: Parameters for the target callable.
     """
     container = OmegaConf.to_container(cfg, resolve=True)
+    if not isinstance(container, dict):
+        raise TypeError(
+            "Expected OmegaConf.to_container to return a dict for parameter extraction, "
+            f"but got {type(container).__name__}."
+        )
     params = {key: value for key, value in container.items() if key != "_target_"}
     return params
 
@@ -68,6 +77,8 @@ def instantiate(cfg: DictConfig, **overrides: Any) -> Any:
     :param cfg: DictConfig containing a ``_target_`` entry.
     :param overrides: Optional keyword overrides for parameters.
     :return: Instantiated object.
+    :raises TypeError: If ``cfg`` is not an instance of :class:`DictConfig`.
+    :raises ValueError: If ``cfg`` does not include a string ``\"_target_\"`` entry.
     """
     if not isinstance(cfg, DictConfig):
         raise TypeError("Config must be a DictConfig.")

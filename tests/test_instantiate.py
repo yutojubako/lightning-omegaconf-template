@@ -12,11 +12,11 @@ import sys
 from pathlib import Path
 
 spec = importlib.util.spec_from_file_location(
-    "instantiate",
+    "test_instantiate_module",
     Path(__file__).parent.parent / "src" / "utils" / "instantiate.py"
 )
 instantiate_module = importlib.util.module_from_spec(spec)
-sys.modules["instantiate"] = instantiate_module
+sys.modules["test_instantiate_module"] = instantiate_module
 spec.loader.exec_module(instantiate_module)
 
 instantiate = instantiate_module.instantiate
@@ -67,7 +67,10 @@ def test_instantiate_invalid_module() -> None:
     cfg = OmegaConf.create(
         {"_target_": "nonexistent.module.Class"}
     )
-    with pytest.raises(ModuleNotFoundError, match="Could not import module 'nonexistent.module'"):
+    with pytest.raises(
+        ModuleNotFoundError,
+        match=r"Could not import module 'nonexistent' when resolving target 'nonexistent\.module\.Class'",
+    ):
         instantiate(cfg)
 
 
@@ -76,7 +79,10 @@ def test_instantiate_invalid_attribute() -> None:
     cfg = OmegaConf.create(
         {"_target_": "tests.helpers.instantiate_targets.NonExistentClass"}
     )
-    with pytest.raises(AttributeError, match="attribute 'NonExistentClass' not found"):
+    with pytest.raises(
+        AttributeError,
+        match=r"attribute 'NonExistentClass' not found in module 'tests\.helpers\.instantiate_targets'",
+    ):
         instantiate(cfg)
 
 
