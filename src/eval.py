@@ -1,6 +1,5 @@
 from typing import Any, Dict, List, Tuple
 
-import hydra
 from lightning import LightningDataModule, LightningModule, Trainer
 from lightning.pytorch.loggers import Logger
 from omegaconf import DictConfig, OmegaConf
@@ -8,6 +7,7 @@ from omegaconf import DictConfig, OmegaConf
 from src.utils import (
     RankedLogger,
     extras,
+    instantiate,
     instantiate_loggers,
     load_config,
     log_hyperparameters,
@@ -30,16 +30,16 @@ def evaluate(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     assert cfg.ckpt_path
 
     log.info(f"Instantiating datamodule <{cfg.data._target_}>")
-    datamodule: LightningDataModule = hydra.utils.instantiate(cfg.data)
+    datamodule: LightningDataModule = instantiate(cfg.data)
 
     log.info(f"Instantiating model <{cfg.model._target_}>")
-    model: LightningModule = hydra.utils.instantiate(cfg.model)
+    model: LightningModule = instantiate(cfg.model)
 
     log.info("Instantiating loggers...")
     logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
 
     log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
-    trainer: Trainer = hydra.utils.instantiate(cfg.trainer, logger=logger)
+    trainer: Trainer = instantiate(cfg.trainer, logger=logger)
 
     object_dict = {
         "cfg": cfg,
@@ -65,9 +65,7 @@ def evaluate(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
 
 
 def main() -> None:
-    """Main entry point for evaluation.
-
-    """
+    """Main entry point for evaluation."""
     cfg = load_config("eval", overrides=OmegaConf.from_cli())
     # apply extra utilities
     # (e.g. ask for tags if none are provided in cfg, print cfg tree, etc.)

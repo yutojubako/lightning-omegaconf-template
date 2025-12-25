@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import rootutils
 from omegaconf import DictConfig, OmegaConf, open_dict
@@ -11,7 +11,7 @@ from omegaconf import DictConfig, OmegaConf, open_dict
 def load_config(
     config_name: str,
     config_dir: str | Path = "configs",
-    overrides: Optional[DictConfig] = None,
+    overrides: DictConfig | None = None,
 ) -> DictConfig:
     """Load and merge configs from the config directory.
 
@@ -62,7 +62,7 @@ def _load_default_entry(
     entry: Any,
     config_root: Path,
     current_group_dir: Path,
-) -> Optional[DictConfig]:
+) -> DictConfig | None:
     """Load a default config entry from a defaults list."""
     if isinstance(entry, str):
         config_path = current_group_dir / f"{entry}.yaml"
@@ -117,14 +117,14 @@ def _populate_runtime_paths(cfg: DictConfig, project_root: Path) -> None:
     # Validate that paths section exists and has log_dir
     if not cfg.get("paths"):
         raise ValueError("Config must contain a 'paths' section")
-    
+
     # Register "now" resolver before resolving paths
     _register_now_resolver()
-    
+
     resolved_paths = OmegaConf.to_container(cfg.paths, resolve=True)
     if not isinstance(resolved_paths, dict) or "log_dir" not in resolved_paths:
         raise ValueError("Config paths section must contain 'log_dir' key")
-    
+
     log_dir = Path(str(resolved_paths["log_dir"]))
     task_name = str(cfg.get("task_name", "task"))
     output_dir = log_dir / task_name / "runs" / _timestamp()
