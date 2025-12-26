@@ -16,6 +16,7 @@ from src.utils import (
     log_hyperparameters,
     task_wrapper,
 )
+from src.utils.instantiate import instantiate
 
 log = RankedLogger(__name__, rank_zero_only=True)
 
