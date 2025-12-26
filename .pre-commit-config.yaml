@@ -105,12 +105,13 @@ repos:
 
   # md formatting
   - repo: https://github.com/executablebooks/mdformat
-    rev: 1.0.0
+    rev: 0.7.17
     hooks:
       - id: mdformat
         args: ["--number"]
         additional_dependencies:
           - mdformat-gfm
+          - mdformat-tables
           - mdformat_frontmatter
           # - mdformat-toc
           # - mdformat-black
