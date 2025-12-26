@@ -110,9 +110,9 @@ repos:
       - id: mdformat
         args: ["--number"]
         additional_dependencies:
-          - mdformat-gfm
-          - mdformat-tables
-          - mdformat_frontmatter
+          - mdformat-gfm>=0.5.0
+          - mdformat-tables>=1.0.0
+          - mdformat_frontmatter>=2.0.0
           # - mdformat-toc
           # - mdformat-black
 
