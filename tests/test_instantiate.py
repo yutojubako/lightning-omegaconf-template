@@ -69,7 +69,7 @@ def test_instantiate_invalid_module() -> None:
     )
     with pytest.raises(
         ModuleNotFoundError,
-        match=r"Could not import module 'nonexistent' when resolving target 'nonexistent\.module\.Class'",
+        match=r"Could not import module 'nonexistent\.module' when resolving target 'nonexistent\.module\.Class'",
     ):
         instantiate(cfg)
 
