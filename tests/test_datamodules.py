@@ -1,4 +1,3 @@
-from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
@@ -22,15 +21,15 @@ class FakeMNIST(Dataset):
         self.data = (np.random.rand(num_samples, 28, 28) * 255).astype(np.uint8)
         # Labels: integers from 0 to 9
         self.targets = np.random.randint(0, 10, size=num_samples, dtype=np.int64)
-        
+
         self.transform = transform
 
     def __getitem__(self, index):
         img, target = self.data[index], int(self.targets[index])
-        
+
         if self.transform is not None:
             img = self.transform(img)
-        
+
         return img, target
 
     def __len__(self):
