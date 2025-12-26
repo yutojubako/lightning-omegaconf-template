@@ -8,7 +8,6 @@ defaults:
   - trainer: default
   - paths: default
   - extras: default
-  - hydra: default
 
 task_name: "eval"
 
